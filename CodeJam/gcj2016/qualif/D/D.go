@@ -1,6 +1,6 @@
 package main
 
-// Google Code Jam 2015 Round 1B
+// Google Code Jam 2016 Qualif
 
 import (
 	"fmt"

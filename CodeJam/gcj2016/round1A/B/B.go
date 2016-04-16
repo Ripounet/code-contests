@@ -1,20 +1,23 @@
 package main
 
-// Google Code Jam 2016 Qualif
+// Google Code Jam 2016 Round 1A
 
 import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
+	"strings"
 	"time"
 )
 
 var (
-	pathIn = "/home/valou/Téléchargements/"
+	pathIn = "/home/val/Téléchargements/"
 	// pathIn   = "./"
 	pathOut  = "./"
 	letter   = "B"
-	strategy = (*Case).solveSmall
+	strategy = (*Case).solveAfterMatch
+	// strategy = (*Case).solveSmall
 	// strategy = (*Case).solveLarge
 	// strategy   = (*Case).solveLargeAndCheck
 	concurrent = false
@@ -25,34 +28,155 @@ var (
 type Case struct {
 	caseNumber int
 	// put fields here
-	S string
+	N     int
+	lines [][]int
+	grid  [][]int
 }
 
 func (z *Case) readSingle() {
-	z.S = readString()
+	z.N = readInt()
+	z.lines = make([][]int, 2*z.N-1)
+	for i := range z.lines {
+		z.lines[i] = make([]int, z.N)
+		for j := range z.lines[i] {
+			z.lines[i][j] = readInt()
+		}
+	}
+
+	z.grid = make([][]int, z.N)
+	for i := range z.grid {
+		z.grid[i] = make([]int, z.N)
+	}
+}
+
+func (z *Case) solveAfterMatch() interface{} {
+	occ := map[int]int{}
+	for _, line := range z.lines {
+		for _, x := range line {
+			occ[x]++
+		}
+	}
+
+	odds := []int{}
+	for v, count := range occ {
+		if count%2 == 1 {
+			odds = append(odds, v)
+		}
+	}
+	sort.Ints(odds)
+	s := fmt.Sprintf("%v", odds)
+	s = strings.Replace(s, "[", "", 1)
+	s = strings.Replace(s, "]", "", 1)
+	return s
 }
 
 func (z *Case) solveSmall() interface{} {
-	flips := 0
-	inv := false
-	for i := len(z.S) - 1; i >= 0; i-- {
-		if inv {
-			if z.S[i] == '+' {
-				flips++
-				inv = !inv
+	sort.Sort(List(z.lines))
+	log(z.lines)
+	missing := -1
+	horiz := false
+
+	p := 0
+	for j, x := range z.lines[0] {
+		z.grid[0][j] = x
+	}
+	p++
+	if z.lines[0][0] == z.lines[1][0] {
+		for i, x := range z.lines[1] {
+			z.grid[i][0] = x
+		}
+		p++
+	} else {
+		missing = 0
+		horiz = false
+	}
+
+	log(z.grid)
+	// fmt.Sprintf(os.Stderr"%v", z.grid)
+
+	for k := 1; k < z.N; k++ {
+		okH := func(list []int) bool {
+			for m := 0; m < k; m++ {
+				if z.grid[k][m] != 0 && list[m] != z.grid[k][m] {
+					return false
+				}
 			}
+			return true
+		}
+
+		okV := func(list []int) bool {
+			for m := 0; m < k; m++ {
+				if z.grid[m][k] != 0 && list[m] != z.grid[m][k] {
+					return false
+				}
+			}
+			return true
+		}
+
+		if p+1 < len(z.lines) && z.lines[p][0] == z.lines[p+1][0] {
+			if !okH(z.lines[p]) {
+				z.lines[p], z.lines[p+1] = z.lines[p+1], z.lines[p]
+			}
+
+			if !okH(z.lines[p]) {
+				panic(1)
+			}
+
+			for j, x := range z.lines[p] {
+				z.grid[k][j] = x
+			}
+			p++
+
+			if !okV(z.lines[p]) {
+				panic(fmt.Sprintf("%v", z.grid))
+			}
+
+			for i, x := range z.lines[p] {
+				z.grid[i][k] = x
+			}
+			p++
 		} else {
-			if z.S[i] == '-' {
-				flips++
-				inv = !inv
+			missing = k
+
+			if okH(z.lines[p]) {
+				for j, x := range z.lines[p] {
+					z.grid[k][j] = x
+				}
+				horiz = false
+				p++
+			} else {
+				if !okV(z.lines[p]) {
+					panic(1)
+				}
+				horiz = true
+				for i, x := range z.lines[p] {
+					z.grid[i][k] = x
+				}
+				p++
 			}
 		}
 	}
-	return flips
+	answer := ""
+	if horiz {
+		for m := 0; m < z.N; m++ {
+			answer += fmt.Sprintf(" %d", z.grid[missing][m])
+		}
+	} else {
+		for m := 0; m < z.N; m++ {
+			answer += fmt.Sprintf(" %d", z.grid[m][missing])
+		}
+	}
+	return answer[1:]
 }
 
+type List [][]int
+
+func (this List) Len() int           { return len(this) }
+func (this List) Less(i, j int) bool { return this[i][0] < this[j][0] }
+func (this List) Swap(i, j int)      { this[i], this[j] = this[j], this[i] }
+
 func (z *Case) solveLarge() interface{} {
-	return 0
+	return nil
 }
 
 // Global precomputed data (if needed)

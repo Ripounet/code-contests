@@ -1,6 +1,6 @@
 package main
 
-// Google Code Jam 2016 Qualif
+// Google Code Jam 2016 Round 1A
 
 import (
 	"fmt"
@@ -10,10 +10,10 @@ import (
 )
 
 var (
-	pathIn = "/home/valou/Téléchargements/"
+	pathIn = "/home/val/Téléchargements/"
 	// pathIn   = "./"
 	pathOut  = "./"
-	letter   = "B"
+	letter   = "A"
 	strategy = (*Case).solveSmall
 	// strategy = (*Case).solveLarge
 	// strategy   = (*Case).solveLargeAndCheck
@@ -33,26 +33,27 @@ func (z *Case) readSingle() {
 }
 
 func (z *Case) solveSmall() interface{} {
-	flips := 0
-	inv := false
-	for i := len(z.S) - 1; i >= 0; i-- {
-		if inv {
-			if z.S[i] == '+' {
-				flips++
-				inv = !inv
-			}
+	win := make([]byte, 1000+len(z.S))
+	start := 1000
+	win[start] = z.S[0]
+	// last := byte(z.S[0])
+	end := 1001
+	for _, c := range z.S[1:] {
+		c := byte(c)
+		if c >= win[start] {
+			win[start-1] = c
+			start--
 		} else {
-			if z.S[i] == '-' {
-				flips++
-				inv = !inv
-			}
+			win[end] = c
+			end++
 		}
+		// last = c
 	}
-	return flips
+	return string(win[start:end])
 }
 
 func (z *Case) solveLarge() interface{} {
-	return 0
+	return nil
 }
 
 // Global precomputed data (if needed)
