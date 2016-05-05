@@ -1,6 +1,6 @@
 package main
 
-// Google Code Jam 2016 Round 2A
+// Google Code Jam 2016 Round 1B
 
 import (
 	"fmt"
