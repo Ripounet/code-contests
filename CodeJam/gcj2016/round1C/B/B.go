@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	pathIn = "/home/val/Téléchargements/"
+	pathIn = "/home/valentin/Downloads/"
 	// pathIn   = "./"
-	pathOut  = "./"
-	letter   = "B"
-	strategy = (*Case).solveSmall
-	// strategy = (*Case).solveLarge
+	pathOut = "./"
+	letter  = "B"
+	//strategy = (*Case).solveSmall
+	strategy = (*Case).solveLarge
 	// strategy   = (*Case).solveLargeAndCheck
 	concurrent = false
 	maxProc    = 4
@@ -39,6 +39,7 @@ func (z *Case) readSingle() {
 	B = readInt()
 	M = readInt()
 	seen = [2000000]bool{}
+	mat = Matrix{}
 }
 
 type Matrix [50][50]bool
@@ -111,7 +112,46 @@ func (z *Case) solveSmall() interface{} {
 }
 
 func (z *Case) solveLarge() interface{} {
-	return nil
+	if M > pow(2, B-2) {
+		return "IMPOSSIBLE"
+	}
+
+	for k := 0; k < B-1; k++ {
+		mat[k][k+1] = true
+	}
+	// Now the "diagonal tangent" contains 1 path 1->2->...->B
+	left := M - 1
+	// Build full triangle : contains 2^X paths to "next building"
+	p := 1
+	j := 2
+	for ; j < B && left >= p; j++ {
+		for i := 0; i < j-1; i++ {
+			mat[i][j] = true
+		}
+		left -= p
+		p *= 2
+	}
+	// Build last, partial column
+	if left > 0 {
+		for i := j - 2; i >= 0; i-- {
+			if left >= pow(2, i-1) {
+				mat[i][j] = true
+				left -= pow(2, i-1)
+			} else {
+			}
+		}
+	}
+	check(left == 0)
+
+	return "POSSIBLE\n" + mat.print()
+}
+
+func pow(a, b int) int {
+	n := 1
+	for i := 0; i < b; i++ {
+		n *= a
+	}
+	return n
 }
 
 // Global precomputed data (if needed)
