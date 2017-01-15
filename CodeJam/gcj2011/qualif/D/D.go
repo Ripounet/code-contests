@@ -1,9 +1,8 @@
 package main
 
-// Google Code Jam 2016 Round 1C
+// Google Code Jam 2011 Qualif Round
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"runtime"
@@ -11,12 +10,12 @@ import (
 )
 
 var (
-	pathIn = "/home/valentin/Downloads/"
-	// pathIn   = "./"
-	pathOut = "./"
-	letter  = "B"
-	//strategy = (*Case).solveSmall
-	strategy = (*Case).solveLarge
+	//pathIn = "/home/valentin/Downloads/"
+	pathIn   = "./"
+	pathOut  = "./"
+	letter   = "D"
+	strategy = (*Case).solveSmall
+	//strategy = (*Case).solveLarge
 	// strategy   = (*Case).solveLargeAndCheck
 	concurrent = false
 	maxProc    = 4
@@ -24,9 +23,8 @@ var (
 
 // Put inputs here as global vars
 var (
-	B, M int
-	mat  Matrix
-	seen [2000000]bool
+	N int
+	a []int
 )
 
 // Case data
@@ -36,122 +34,26 @@ type Case struct {
 
 func (z *Case) readSingle() {
 	check(!concurrent) // So we can use global vars
-	B = readInt()
-	M = readInt()
-	seen = [2000000]bool{}
-	mat = Matrix{}
-}
 
-type Matrix [50][50]bool
-
-func (m *Matrix) print() string {
-	var buf bytes.Buffer
-	for i := 0; i < B; i++ {
-		for j := 0; j < B; j++ {
-			c := "0"
-			if m[i][j] {
-				c = "1"
-			}
-			buf.WriteString(c)
-		}
-		if i < B-1 {
-			buf.WriteString("\n")
-		}
+	N = readInt()
+	a = make([]int, N)
+	for i := range a {
+		a[i] = readInt()
 	}
-	return buf.String()
-}
-
-func (m *Matrix) count() int {
-	var c [50]int
-	c[0] = 1
-	for i := 0; i < B-1; i++ {
-		for j := i; j < B; j++ {
-			if m[i][j] {
-				c[j] += c[i]
-			}
-		}
-	}
-	return c[B-1]
 }
 
 func (z *Case) solveSmall() interface{} {
-
-	var rec func(int, int) string
-	rec = func(i, j int) string {
-		if i == B-1 {
-			if mat.count() == M {
-				return "POSSIBLE\n" + mat.print()
-			}
-			return ""
+	x := N
+	for i, y := range a {
+		if y == i+1 {
+			x--
 		}
-
-		var ii, jj int
-		if j == B-1 {
-			ii, jj = i+1, i+2
-		} else {
-			ii, jj = i, j+1
-		}
-		a := rec(ii, jj)
-		if a != "" {
-			return a
-		}
-
-		mat[i][j] = true
-		a = rec(ii, jj)
-		if a != "" {
-			return a
-		}
-		mat[i][j] = false
-		return ""
 	}
-	answer := rec(0, 1)
-	if answer == "" {
-		return "IMPOSSIBLE"
-	}
-	return answer
+	return x
 }
 
 func (z *Case) solveLarge() interface{} {
-	if M > pow(2, B-2) {
-		return "IMPOSSIBLE"
-	}
-
-	for k := 0; k < B-1; k++ {
-		mat[k][k+1] = true
-	}
-	// Now the "diagonal tangent" contains 1 path 1->2->...->B
-	left := M - 1
-	// Build full triangle : contains 2^X paths to "next building"
-	p := 1
-	j := 2
-	for ; j < B && left >= p; j++ {
-		for i := 0; i < j-1; i++ {
-			mat[i][j] = true
-		}
-		left -= p
-		p *= 2
-	}
-	// Build last, partial column
-	if left > 0 {
-		for i := j - 2; i >= 0; i-- {
-			if left >= pow(2, i-1) {
-				mat[i][j] = true
-				left -= pow(2, i-1)
-			} else {
-			}
-		}
-	}
-	check(left == 0)
-
-	return "POSSIBLE\n" + mat.print()
-}
-
-func pow(a, b int) int {
-	n := 1
-	for i := 0; i < b; i++ {
-		n *= a
-	}
-	return n
+	return 0
 }
 
 // Global precomputed data (if needed)
